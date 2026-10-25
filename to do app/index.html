@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Task Manager</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 30px 10px;
+    }
+
+    h1 {
+      text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
+    }
+
+    .task-form {
+      background: rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      margin-bottom: 30px;
+    }
+
+    .task-form input, .task-form select {
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      margin: 5px;
+      width: calc(50% - 15px);
+    }
+
+    .task-form button {
+      padding: 10px 15px;
+      border: none;
+      background-color: #ffce00;
+      color: black;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: bold;
+    }
+
+    .task-form button:hover {
+      background-color: #ffdd33;
+      transform: scale(1.05);
+    }
+
+    table {
+      width: 90%;
+      max-width: 800px;
+      border-collapse: collapse;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    th {
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    tr.completed {
+      background-color: rgba(0, 255, 150, 0.2);
+      text-decoration: line-through;
+    }
+
+    tr:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .urgent { color: #ff3b3b; font-weight: bold; }
+    .important { color: #ffce00; font-weight: bold; }
+    .normal { color: #00ff99; font-weight: bold; }
+
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 5px 10px;
+      cursor: pointer;
+      margin: 2px;
+      font-weight: bold;
+    }
+
+    .delete { background-color: #ff3b3b; color: white; }
+    .delete:hover { background-color: #ff6666; }
+
+    .edit { background-color: #00bfff; color: white; }
+    .edit:hover { background-color: #33ccff; }
+
+    .save { background-color: #00ff99; color: black; }
+  </style>
+</head>
+<body>
+  <h1>⚙️ Smart Task Manager</h1>
+
+  <div class="task-form">
+    <input type="text" id="taskName" placeholder="Task name...">
+    <select id="priority">
+      <option value="urgent">🔥 Urgent</option>
+      <option value="important">⭐ Important</option>
+      <option value="normal">😌 No Pressure</option>
+    </select>
+    <select id="status">
+      <option value="not started">Not Started</option>
+      <option value="in progress">In Progress</option>
+      <option value="completed">Completed</option>
+    </select>
+    <input type="date" id="dateAssigned">
+    <button onclick="addTask()">Add Task</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Task</th>
+        <th>Priority</th>
+        <th>Status</th>
+        <th>Assigned</th>
+        <th>Completed</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="taskTable"></tbody>
+  </table>
+
+  <script>
+    function addTask() {
+      const name = document.getElementById('taskName').value.trim();
+      const priority = document.getElementById('priority').value;
+      const status = document.getElementById('status').value;
+      const date = document.getElementById('dateAssigned').value;
+
+      if (name === '' || date === '') return alert("Please fill all fields!");
+
+      const row = document.createElement('tr');
+      updateRow(row, { name, priority, status, date });
+
+      document.getElementById('taskTable').appendChild(row);
+
+      document.getElementById('taskName').value = '';
+      document.getElementById('dateAssigned').value = '';
+    }
+
+    function updateRow(row, data) {
+      const { name, priority, status, date } = data;
+      const priorityClass = priority === 'urgent' ? 'urgent' : 
+                            priority === 'important' ? 'important' : 'normal';
+      const completedDate = status === 'completed' ? new Date().toLocaleDateString() : '-';
+      row.className = status === 'completed' ? 'completed' : '';
+
+      row.innerHTML = `
+        <td>${name}</td>
+        <td class="${priorityClass}">${priority}</td>
+        <td>${status}</td>
+        <td>${date}</td>
+        <td>${completedDate}</td>
+        <td>
+          <button class="btn edit" onclick="editTask(this)">Edit</button>
+          <button class="btn delete" onclick="deleteTask(this)">Delete</button>
+        </td>
+      `;
+    }
+
+    function deleteTask(button) {
+      button.parentElement.parentElement.remove();
+    }
+
+    function editTask(button) {
+      const row = button.parentElement.parentElement;
+      const cells = row.querySelectorAll('td');
+
+      const name = cells[0].textContent;
+      const priority = cells[1].textContent;
+      const status = cells[2].textContent;
+      const date = cells[3].textContent;
+
+      row.innerHTML = `
+        <td><input type="text" id="editName" value="${name}"></td>
+        <td>
+          <select id="editPriority">
+            <option ${priority==='urgent'?'selected':''} value="urgent">🔥 Urgent</option>
+            <option ${priority==='important'?'selected':''} value="important">⭐ Important</option>
+            <option ${priority==='normal'?'selected':''} value="normal">😌 No Pressure</option>
+          </select>
+        </td>
+        <td>
+          <select id="editStatus">
+            <option ${status==='not started'?'selected':''} value="not started">Not Started</option>
+            <option ${status==='in progress'?'selected':''} value="in progress">In Progress</option>
+            <option ${status==='completed'?'selected':''} value="completed">Completed</option>
+          </select>
+        </td>
+        <td><input type="date" id="editDate" value="${date}"></td>
+        <td>-</td>
+        <td>
+          <button class="btn save" onclick="saveEdit(this)">Save</button>
+        </td>
+      `;
+    }
+
+    function saveEdit(button) {
+      const row = button.parentElement.parentElement;
+      const updated = {
+        name: row.querySelector('#editName').value,
+        priority: row.querySelector('#editPriority').value,
+        status: row.querySelector('#editStatus').value,
+        date: row.querySelector('#editDate').value
+      };
+      updateRow(row, updated);
+    }
+  </script>
+</body>
+</html>

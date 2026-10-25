@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raph Tech Smart Task Manager</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #222;
+    }
+
+    .task-table {
+      width: 100%;
+      max-width: 1100px;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    th {
+      background: #007bff;
+      color: white;
+    }
+
+    select {
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      width: 100%;
+    }
+
+    .controls {
+      text-align: center;
+      margin: 20px;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 5px;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    .next-action {
+      margin-top: 30px;
+      max-width: 1100px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-inline: auto;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Column-specific colors */
+    .priority-urgent { background: #dc3545; color: white; }
+    .priority-important { background: #cce5ff; }
+    .priority-nopressure { background: #fff3cd; }
+    .priority-skipped { background: #d6d8d9; }
+
+    .status-notyet { background: #cce5ff; }
+    .status-inprogress { background: #007bff; color: white; }
+    .status-done { background: #28a745; color: white; }
+  </style>
+</head>
+<body>
+  <h1>🧠 Raph Tech Smart Task Manager</h1>
+
+  <div class="controls">
+    <button onclick="addTask()">➕ Add New Task</button>
+  </div>
+
+  <table class="task-table" id="taskTable">
+    <thead>
+      <tr>
+        <th>Task</th>
+        <th>Priority</th>
+        <th>Status</th>
+        <th>Date Assigned</th>
+        <th>Due Date</th>
+        <th>Date Completed</th>
+        <th>Next Action</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="next-action">
+    <h3>💡 Smart Manager Suggestion</h3>
+    <p id="smartTip">Add your first task to get started!</p>
+  </div>
+
+  <script>
+    const taskTable = document.getElementById("taskTable").querySelector("tbody");
+    const smartTip = document.getElementById("smartTip");
+
+    function addTask(data = null) {
+      const row = taskTable.insertRow();
+
+      // Task Name
+      const taskCell = row.insertCell();
+      taskCell.contentEditable = true;
+      taskCell.innerText = data?.task || "New Task";
+
+      // Priority dropdown
+      const priorityCell = row.insertCell();
+      const prioritySelect = document.createElement("select");
+      const priorityOptions = ["Urgent & Important", "Important", "No Pressure", "Skipped"];
+      priorityOptions.forEach(opt => {
+        const option = document.createElement("option");
+        option.value = opt.toLowerCase().replace(/ /g, "-");
+        option.text = opt;
+        if (data?.priority === option.value) option.selected = true;
+        prioritySelect.appendChild(option);
+      });
+      prioritySelect.onchange = () => updateColors(row);
+      priorityCell.appendChild(prioritySelect);
+
+      // Status dropdown
+      const statusCell = row.insertCell();
+      const statusSelect = document.createElement("select");
+      const statusOptions = ["Not Yet Assigned", "In Progress", "Done"];
+      statusOptions.forEach(opt => {
+        const option = document.createElement("option");
+        option.value = opt.toLowerCase().replace(/ /g, "-");
+        option.text = opt;
+        if (data?.status === option.value) option.selected = true;
+        statusSelect.appendChild(option);
+      });
+      statusSelect.onchange = () => updateColors(row);
+      statusCell.appendChild(statusSelect);
+
+      // Dates
+      row.insertCell().innerText = data?.assigned || new Date().toLocaleDateString();
+      const dueCell = row.insertCell();
+      dueCell.contentEditable = true;
+      dueCell.innerText = data?.due || "-";
+      row.insertCell().innerText = data?.completed || "-";
+
+      // Next Action
+      const nextActionCell = row.insertCell();
+      const nextActionSelect = document.createElement("select");
+      const nextActionOptions = ["Complete", "Delete", "Follow Up"];
+      nextActionOptions.forEach(opt => {
+        const option = document.createElement("option");
+        option.value = opt.toLowerCase().replace(/ /g, "-");
+        option.text = opt;
+        nextActionSelect.appendChild(option);
+      });
+      nextActionSelect.onchange = (e) => handleNextAction(e, row);
+      nextActionCell.appendChild(nextActionSelect);
+
+      // Action Button
+      const actionCell = row.insertCell();
+      actionCell.innerHTML = `<button onclick="deleteRow(this)">🗑️</button>`;
+
+      updateColors(row);
+      updateSmartTip();
+      saveTasks();
+    }
+
+    function updateColors(row) {
+      const priorityCell = row.cells[1];
+      const statusCell = row.cells[2];
+      const priority = priorityCell.querySelector("select").value;
+      const status = statusCell.querySelector("select").value;
+
+      // Reset colors first
+      priorityCell.className = "";
+      statusCell.className = "";
+
+      // Apply individual colors
+      priorityCell.classList.add(`priority-${priority}`);
+      statusCell.classList.add(`status-${status}`);
+
+      // Update completion date
+      row.cells[5].innerText = status === "done" ? new Date().toLocaleDateString() : "-";
+
+      saveTasks();
+    }
+
+    function handleNextAction(e, row) {
+      const action = e.target.value;
+      if (action === "complete") {
+        row.cells[2].querySelector("select").value = "done";
+        updateColors(row);
+      } else if (action === "delete") {
+        deleteRow(row.cells[7].querySelector("button"));
+      } else if (action === "follow-up") {
+        alert("📌 Follow up on this task soon!");
+      }
+      e.target.value = "";
+      updateSmartTip();
+    }
+
+    function deleteRow(btn) {
+      const row = btn.parentElement.parentElement;
+      taskTable.removeChild(row);
+      updateSmartTip();
+      saveTasks();
+    }
+
+    function updateSmartTip() {
+      const total = taskTable.rows.length;
+      const completed = [...taskTable.rows].filter(
+        (r) => r.cells[2].querySelector("select").value === "done"
+      ).length;
+      const pending = total - completed;
+
+      if (total === 0) {
+        smartTip.innerText = "No tasks yet. Add one to get started!";
+      } else if (pending === 0) {
+        smartTip.innerText = "🔥 All tasks completed! Great work!";
+      } else {
+        smartTip.innerText = `📋 ${pending} task(s) remaining — stay focused!`;
+      }
+    }
+
+    function saveTasks() {
+      const tasks = [...taskTable.rows].map(row => ({
+        task: row.cells[0].innerText,
+        priority: row.cells[1].querySelector("select").value,
+        status: row.cells[2].querySelector("select").value,
+        assigned: row.cells[3].innerText,
+        due: row.cells[4].innerText,
+        completed: row.cells[5].innerText
+      }));
+      localStorage.setItem("raphtech_tasks", JSON.stringify(tasks));
+    }
+
+    function loadTasks() {
+      const saved = JSON.parse(localStorage.getItem("raphtech_tasks") || "[]");
+      saved.forEach(t => addTask(t));
+    }
+
+    loadTasks();
+  </script>
+</body>
+</html>
