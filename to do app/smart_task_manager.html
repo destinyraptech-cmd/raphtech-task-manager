@@ -1,265 +1,474 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Raph Tech Smart Task Manager</title>
-  <style>
-    body {
-      font-family: "Poppins", sans-serif;
-      background: #f4f6f8;
-      margin: 0;
-      padding: 30px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Task Manager | Raph Tech</title>
+<meta name="description" content="A smart task manager by Raph Tech. Track priorities and status at a glance.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314213d'/%3E%3Ctext x='32' y='45' font-size='36' font-weight='700' text-anchor='middle' fill='%23fca311' font-family='Arial'%3ER%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+:root{
+  --ink:#14213d; --ink-2:#1f3160; --paper:#f3f5fa; --white:#fff; --line:#dde3ef; --text:#1b2438; --muted:#66728c;
+  --gold:#fca311; --red:#d92d3a; --blue:#2563eb; --green:#15803d; --amber:#b7791f; --grey:#8a94a8;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Plus Jakarta Sans","Segoe UI",system-ui,sans-serif;background:var(--paper);color:var(--text);line-height:1.5}
 
-    h1 {
-      text-align: center;
-      color: #222;
-    }
+/* VALORX stamp watermark: fixed, faint, never blocks clicks */
+body::before{
+  content:"";
+  position:fixed;left:50%;top:50%;
+  width:min(78vmin,560px);aspect-ratio:1;
+  transform:translate(-50%,-50%) rotate(-12deg);
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Cdefs%3E%3Cpath id='p' d='M200,200 m-150,0 a150,150 0 1,1 300,0 a150,150 0 1,1 -300,0'/%3E%3C/defs%3E%3Cg fill='none' stroke='%2314213d'%3E%3Ccircle cx='200' cy='200' r='190' stroke-width='6'/%3E%3Ccircle cx='200' cy='200' r='176' stroke-width='2'/%3E%3Ccircle cx='200' cy='200' r='112' stroke-width='3'/%3E%3C/g%3E%3Ctext font-family='Arial,sans-serif' font-weight='700' font-size='26' fill='%2314213d'%3E%3CtextPath href='%23p' textLength='925' lengthAdjust='spacing'%3EVALORX %C2%B7 TASK MANAGER %C2%B7 RAPH TECH %C2%B7 %3C/textPath%3E%3C/text%3E%3Ctext x='200' y='220' font-family='Arial,sans-serif' font-weight='800' font-size='46' letter-spacing='3' text-anchor='middle' fill='%2314213d'%3EVALORX%3C/text%3E%3C/svg%3E") center/contain no-repeat;
+  opacity:.06;pointer-events:none;user-select:none;z-index:50;
+}
 
-    .task-table {
-      width: 100%;
-      max-width: 1100px;
-      margin: 20px auto;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
+/* Header */
+.top{background:var(--ink);color:#fff;padding:28px 16px 64px}
+.top-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.logo{width:52px;height:52px;border-radius:14px;background:var(--gold);color:var(--ink);display:grid;place-items:center;font-weight:800;font-size:26px;flex:none}
+.top h1{margin:0;font-size:clamp(22px,4vw,30px);font-weight:800;letter-spacing:-.3px}
+.top p{margin:2px 0 0;color:#b8c3de;font-size:14px}
 
-    th,
-    td {
-      border: 1px solid #ddd;
-      padding: 10px 12px;
-      text-align: center;
-    }
+.layout{max-width:1180px;margin:-40px auto 0;padding:0 16px 40px;display:grid;grid-template-columns:270px minmax(0,1fr);gap:18px;align-items:start}
 
-    th {
-      background: #007bff;
-      color: white;
-    }
+/* Task record sidebar */
+.record{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:16px;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;margin-top:40px}
+.record h2{margin:0;font-size:16px;font-weight:700}
+.record .sub{margin:2px 0 10px;font-size:12px;color:var(--muted)}
+.record ul{margin:0;padding-left:18px}
+.record li{margin:0 0 10px;font-size:14px;line-height:1.35}
+.record li::marker{color:var(--grey)}
+.record li.r-progress::marker{color:var(--blue)}
+.record li.r-completed::marker{color:var(--green)}
+.record li.r-removed::marker{color:var(--red)}
+.record .r-name{font-weight:600;word-break:break-word}
+.record li.r-completed .r-name{color:var(--muted)}
+.record li.r-removed .r-name{color:var(--muted);text-decoration:line-through}
+.record small{display:block;color:var(--muted);font-size:12px}
+.record .ghost{width:100%;margin-top:6px}
+.rec-empty{font-size:13px;color:var(--muted)}
 
-    select {
-      padding: 6px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-      width: 100%;
-    }
+/* Stats strip */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--white);border-radius:14px;box-shadow:0 6px 24px rgba(20,33,61,.12);overflow:hidden}
+.stat{padding:14px 16px;border-left:4px solid var(--grey)}
+.stat b{display:block;font-size:26px;line-height:1.1;font-weight:800}
+.stat span{font-size:13px;color:var(--muted)}
+.stat.s-urgent{border-color:var(--red)} .stat.s-progress{border-color:var(--blue)} .stat.s-done{border-color:var(--green)}
 
-    .controls {
-      text-align: center;
-      margin: 20px;
-    }
+/* Panels */
+.panel{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px;margin-top:18px}
+.panel h2{margin:0 0 12px;font-size:16px;font-weight:700}
+.form{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:end}
+.form label:first-child,.form .add{grid-column:span 2}
+.progress{margin-top:18px;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:14px 18px}
+.progress-top{display:flex;justify-content:space-between;gap:10px;font-size:14px;font-weight:700;margin-bottom:8px}
+.progress-top span:last-child{font-weight:500;font-size:13px;color:var(--muted)}
+.track{height:10px;background:#e8ecf4;border-radius:999px;overflow:hidden}
+.fill{height:100%;width:0;background:var(--green);border-radius:999px;transition:width .5s ease}
+.due-flag{display:block;font-size:12px;font-weight:700}
+.due-late{color:var(--red)} .due-today{color:var(--amber)}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--muted)}
+input,select{font:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--text);width:100%}
+input:focus,select:focus,button:focus-visible{outline:3px solid rgba(37,99,235,.35);outline-offset:1px;border-color:var(--blue)}
+.add{font:inherit;font-weight:700;background:var(--gold);color:var(--ink);border:0;border-radius:10px;padding:11px 18px;cursor:pointer;transition:transform .15s,background .15s}
+.add:hover{background:#ffb534;transform:translateY(-1px)}
 
-    button {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin: 5px;
-    }
+/* Toolbar */
+.bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.bar input{flex:2;min-width:160px} .bar select{flex:1;min-width:140px}
+.ghost{font:inherit;font-weight:600;font-size:13px;background:#fff;border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:9px 14px;cursor:pointer}
+.ghost:hover{color:var(--red);border-color:var(--red)}
 
-    button:hover {
-      background: #0056b3;
-    }
+/* Table */
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;font-weight:700;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line)}
+td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr{border-left:5px solid var(--grey);transition:background .2s,opacity .2s}
+.task-name{font-weight:600}
 
-    .next-action {
-      margin-top: 30px;
-      max-width: 1100px;
-      background: white;
-      padding: 15px;
-      border-radius: 10px;
-      margin-inline: auto;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
+/* Row styles driven by status and priority */
+tr.pr-urgent{border-left-color:var(--red);background:#fff1f2}
+tr.pr-important{border-left-color:var(--gold);background:#fff9ec}
+tr.pr-normal{border-left-color:var(--grey);background:#fff}
+tr.st-progress{border-left-color:var(--blue);background:#eef4ff}
+tr.st-completed{border-left-color:var(--green);background:#ecf8f0;opacity:.85}
+tr.st-completed .task-name{text-decoration:line-through;color:var(--muted)}
+tr.pr-urgent .task-name{font-weight:800}
 
-    /* Column-specific colors */
-    .priority-urgent { background: #dc3545; color: white; }
-    .priority-important { background: #cce5ff; }
-    .priority-nopressure { background: #fff3cd; }
-    .priority-skipped { background: #d6d8d9; }
+/* Badges */
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.b-urgent{background:var(--red);color:#fff;animation:pulse 1.8s ease-in-out infinite}
+.b-important{background:#ffe6b0;color:#7a4b00}
+.b-normal{background:#e8ecf4;color:var(--muted)}
+.check{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--green);color:#fff;font-size:12px;margin-right:6px}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(217,45,58,.18)}}
+@media (prefers-reduced-motion:reduce){.b-urgent{animation:none}*{transition:none!important}}
 
-    .status-notyet { background: #cce5ff; }
-    .status-inprogress { background: #007bff; color: white; }
-    .status-done { background: #28a745; color: white; }
-  </style>
+/* Status dropdown colours itself */
+.status{font-weight:700;padding:7px 10px;border-radius:999px;border:1px solid transparent;width:auto;cursor:pointer}
+.status.v-notstarted{background:#e8ecf4;color:#4b566f}
+.status.v-progress{background:var(--blue);color:#fff}
+.status.v-completed{background:var(--green);color:#fff}
+
+.btn{font:inherit;font-size:13px;font-weight:600;border:0;border-radius:8px;padding:6px 12px;cursor:pointer;margin-right:4px;color:#fff}
+.edit{background:var(--ink-2)} .delete{background:var(--red)} .save{background:var(--green)} .cancel{background:var(--grey)}
+.btn:hover{filter:brightness(1.12)}
+/* Section dividers: In progress, Not started, Completed */
+tbody tr.group{border:0;background:none;opacity:1;padding:0;margin-bottom:0}
+tr.group td{display:table-cell;padding:18px 10px 8px;border-bottom:2px solid var(--line);font-weight:800;font-size:14px}
+tr.group .count{font-weight:700;font-size:12px;color:var(--muted);margin-left:6px}
+tr.g-progress td{color:var(--blue);border-bottom-color:var(--blue)}
+tr.g-notstarted td{color:#4b566f;border-bottom-color:var(--grey)}
+tr.g-completed td{color:var(--green);border-bottom-color:var(--green)}
+.empty{text-align:center;color:var(--muted);padding:34px 10px}
+.empty b{display:block;color:var(--text);font-size:16px;margin-bottom:4px}
+
+footer{text-align:center;color:var(--muted);font-size:13px;padding:6px 16px 30px}
+footer a{color:var(--ink-2);font-weight:700;text-decoration:none}
+footer a:hover{text-decoration:underline}
+
+/* Mobile: rows become stacked cards */
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr}
+  .record{order:2;position:static;max-height:none;margin-top:0}
+}
+@media (max-width:760px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .form{grid-template-columns:1fr 1fr}
+  .form label:first-child,.add{grid-column:1/-1}
+  thead{display:none}
+  table,tbody,tr,td{display:block;width:100%}
+  tbody tr{margin-bottom:12px;border:1px solid var(--line);border-left-width:5px;border-radius:12px;padding:6px 4px}
+  td{border:0;padding:6px 10px;display:flex;justify-content:space-between;gap:12px;align-items:center}
+  td::before{content:attr(data-label);font-size:12px;font-weight:700;color:var(--muted)}
+  tr.group td{display:block}
+  tr.group td::before{content:none}
+}
+/* Theme switch and dark mode */
+.theme{margin-left:auto;font:inherit;font-weight:600;font-size:13px;background:transparent;border:1px solid #4a5b85;color:#fff;border-radius:10px;padding:8px 14px;cursor:pointer;flex:none}
+.theme:hover{border-color:var(--gold);color:var(--gold)}
+html[data-theme=dark]{--paper:#0c1322;--white:#141f38;--line:#27385c;--text:#e6ecfa;--muted:#97a5c4}
+html[data-theme=dark] input,html[data-theme=dark] select,html[data-theme=dark] .ghost{background:#0f1930;color:var(--text)}
+html[data-theme=dark] .ghost{color:var(--muted)}
+html[data-theme=dark] tr.pr-urgent{background:#2a1520}
+html[data-theme=dark] tr.pr-important{background:#2a2312}
+html[data-theme=dark] tr.pr-normal{background:var(--white)}
+html[data-theme=dark] tr.st-progress{background:#12234a}
+html[data-theme=dark] tr.st-completed{background:#10291d}
+html[data-theme=dark] .b-important{background:#4a3a10;color:#ffd98a}
+html[data-theme=dark] .b-normal,html[data-theme=dark] .status.v-notstarted,html[data-theme=dark] .track{background:#222f4b;color:#c3cde4}
+html[data-theme=dark] tr.g-notstarted td{color:#c3cde4}
+html[data-theme=dark] footer a{color:var(--gold)}
+html[data-theme=dark] body::before{filter:invert(1);opacity:.07}
+</style>
 </head>
 <body>
-  <h1>🧠 Raph Tech Smart Task Manager</h1>
 
-  <div class="controls">
-    <button onclick="addTask()">➕ Add New Task</button>
+<header class="top">
+  <div class="top-in">
+    <div class="logo" aria-hidden="true">R</div>
+    <div>
+      <h1>Smart Task Manager</h1>
+      <p>Organize your work, simply. See what matters at a glance.</p>
+    </div>
+    <button class="theme" id="themeBtn" onclick="toggleTheme()">Dark mode</button>
   </div>
+</header>
 
-  <table class="task-table" id="taskTable">
-    <thead>
-      <tr>
-        <th>Task</th>
-        <th>Priority</th>
-        <th>Status</th>
-        <th>Date Assigned</th>
-        <th>Due Date</th>
-        <th>Date Completed</th>
-        <th>Next Action</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<div class="layout">
+<aside class="record" aria-label="Task record">
+  <h2>Task record <span id="recCount"></span></h2>
+  <p class="sub">Every task you have added, newest first.</p>
+  <ul id="recordList"></ul>
+  <button class="ghost" onclick="clearRemoved()">Clear removed entries</button>
+</aside>
 
-  <div class="next-action">
-    <h3>💡 Smart Manager Suggestion</h3>
-    <p id="smartTip">Add your first task to get started!</p>
-  </div>
+<main>
+  <section class="stats" aria-label="Task summary">
+    <div class="stat"><b id="cTotal">0</b><span>Total tasks</span></div>
+    <div class="stat s-urgent"><b id="cUrgent">0</b><span>Urgent and open</span></div>
+    <div class="stat s-progress"><b id="cProgress">0</b><span>In progress</span></div>
+    <div class="stat s-done"><b id="cDone">0</b><span>Completed</span></div>
+  </section>
 
-  <script>
-    const taskTable = document.getElementById("taskTable").querySelector("tbody");
-    const smartTip = document.getElementById("smartTip");
+  <section class="progress" aria-label="Overall progress">
+    <div class="progress-top"><span id="pctText">0% complete</span><span id="pctNote">0 of 0 tasks done</span></div>
+    <div class="track"><div class="fill" id="pctFill"></div></div>
+  </section>
 
-    function addTask(data = null) {
-      const row = taskTable.insertRow();
+  <section class="panel">
+    <h2>Add a task</h2>
+    <div class="form">
+      <label>Task name<input type="text" id="taskName" placeholder="What needs to be done?" maxlength="120"></label>
+      <label>Priority
+        <select id="priority">
+          <option value="urgent">🔥 Urgent</option>
+          <option value="important">⭐ Important</option>
+          <option value="normal" selected>😌 No pressure</option>
+        </select>
+      </label>
+      <label>Status
+        <select id="status">
+          <option value="not started">Not started</option>
+          <option value="in progress">In progress</option>
+          <option value="completed">Completed</option>
+        </select>
+      </label>
+      <label>Date assigned<input type="date" id="dateAssigned"></label>
+      <label>Due date<input type="date" id="dueDate"></label>
+      <button class="add" onclick="addTask()">Add task</button>
+    </div>
+  </section>
 
-      // Task Name
-      const taskCell = row.insertCell();
-      taskCell.contentEditable = true;
-      taskCell.innerText = data?.task || "New Task";
+  <section class="panel">
+    <div class="bar">
+      <input type="search" id="search" placeholder="Search tasks..." oninput="render()" aria-label="Search tasks">
+      <select id="filter" onchange="render()" aria-label="Filter by status">
+        <option value="all">All statuses</option>
+        <option value="not started">Not started</option>
+        <option value="in progress">In progress</option>
+        <option value="completed">Completed</option>
+      </select>
+      <button class="ghost" onclick="exportCsv()">Export to Excel</button>
+      <button class="ghost" onclick="clearCompleted()">Clear completed</button>
+    </div>
+    <div class="wrap">
+      <table>
+        <thead>
+          <tr><th>Task</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Due</th><th>Completed</th><th>Actions</th></tr>
+        </thead>
+        <tbody id="taskTable"></tbody>
+      </table>
+    </div>
+    <div id="empty" class="empty" hidden><b>No tasks yet</b>Add your first task above to get started.</div>
+  </section>
+</main>
+</div>
 
-      // Priority dropdown
-      const priorityCell = row.insertCell();
-      const prioritySelect = document.createElement("select");
-      const priorityOptions = ["Urgent & Important", "Important", "No Pressure", "Skipped"];
-      priorityOptions.forEach(opt => {
-        const option = document.createElement("option");
-        option.value = opt.toLowerCase().replace(/ /g, "-");
-        option.text = opt;
-        if (data?.priority === option.value) option.selected = true;
-        prioritySelect.appendChild(option);
-      });
-      prioritySelect.onchange = () => updateColors(row);
-      priorityCell.appendChild(prioritySelect);
+<footer>
+  A VALORX product. Built by Raph Tech. <a href="https://github.com/destinyraptech-cmd" target="_blank" rel="noopener">See more projects on GitHub</a>
+</footer>
 
-      // Status dropdown
-      const statusCell = row.insertCell();
-      const statusSelect = document.createElement("select");
-      const statusOptions = ["Not Yet Assigned", "In Progress", "Done"];
-      statusOptions.forEach(opt => {
-        const option = document.createElement("option");
-        option.value = opt.toLowerCase().replace(/ /g, "-");
-        option.text = opt;
-        if (data?.status === option.value) option.selected = true;
-        statusSelect.appendChild(option);
-      });
-      statusSelect.onchange = () => updateColors(row);
-      statusCell.appendChild(statusSelect);
+<script>
+const KEY = 'raphtech_tasks_v1';
+const PRIORITY = { urgent: '🔥 Urgent', important: '⭐ Important', normal: '😌 No pressure' };
+const STATUS = { 'not started': 'Not started', 'in progress': 'In progress', 'completed': 'Completed' };
+const ORDER = { urgent: 0, important: 1, normal: 2 };
 
-      // Dates
-      row.insertCell().innerText = data?.assigned || new Date().toLocaleDateString();
-      const dueCell = row.insertCell();
-      dueCell.contentEditable = true;
-      dueCell.innerText = data?.due || "-";
-      row.insertCell().innerText = data?.completed || "-";
+const HKEY = 'raphtech_record_v1';
+let tasks = load();
+let record = loadRecord();
+let editingId = null;
 
-      // Next Action
-      const nextActionCell = row.insertCell();
-      const nextActionSelect = document.createElement("select");
-      const nextActionOptions = ["Complete", "Delete", "Follow Up"];
-      nextActionOptions.forEach(opt => {
-        const option = document.createElement("option");
-        option.value = opt.toLowerCase().replace(/ /g, "-");
-        option.text = opt;
-        nextActionSelect.appendChild(option);
-      });
-      nextActionSelect.onchange = (e) => handleNextAction(e, row);
-      nextActionCell.appendChild(nextActionSelect);
+function loadRecord() { try { return JSON.parse(localStorage.getItem(HKEY)) || []; } catch (e) { return []; } }
+function persistRecord() { try { localStorage.setItem(HKEY, JSON.stringify(record)); } catch (e) {} }
+// Tasks saved before the record existed get added to it once
+tasks.forEach(t => { if (!record.some(r => r.id === t.id)) record.push({ id: t.id, name: t.name, priority: t.priority, addedOn: t.date }); });
+persistRecord();
 
-      // Action Button
-      const actionCell = row.insertCell();
-      actionCell.innerHTML = `<button onclick="deleteRow(this)">🗑️</button>`;
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } }
+function persist() { try { localStorage.setItem(KEY, JSON.stringify(tasks)); } catch (e) {} }
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function today() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function dueFlag(t) {
+  if (!t.due || t.status === 'completed') return '';
+  if (t.due < today()) return '<span class="due-flag due-late">Overdue</span>';
+  if (t.due === today()) return '<span class="due-flag due-today">Due today</span>';
+  return '';
+}
+function fmt(d) { return d ? new Date(d + 'T00:00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : '-'; }
+function opts(map, current) { return Object.keys(map).map(k => `<option value="${k}" ${k === current ? 'selected' : ''}>${map[k]}</option>`).join(''); }
 
-      updateColors(row);
-      updateSmartTip();
-      saveTasks();
-    }
+function addTask() {
+  const name = document.getElementById('taskName').value.trim();
+  const priority = document.getElementById('priority').value;
+  const status = document.getElementById('status').value;
+  const date = document.getElementById('dateAssigned').value;
+  if (!name || !date) return alert('Please enter a task name and a date.');
+  const id = Date.now();
+  const due = document.getElementById('dueDate').value;
+  tasks.push({ id, name, priority, status, date, due, doneOn: status === 'completed' ? today() : '' });
+  record.push({ id, name, priority, addedOn: today() });
+  persist(); persistRecord();
+  document.getElementById('taskName').value = '';
+  document.getElementById('dueDate').value = '';
+  document.getElementById('dateAssigned').value = today();
+  render();
+}
 
-    function updateColors(row) {
-      const priorityCell = row.cells[1];
-      const statusCell = row.cells[2];
-      const priority = priorityCell.querySelector("select").value;
-      const status = statusCell.querySelector("select").value;
+function setStatus(id, value) {
+  const t = tasks.find(x => x.id === id);
+  t.status = value;
+  t.doneOn = value === 'completed' ? today() : '';
+  persist(); render();
+}
 
-      // Reset colors first
-      priorityCell.className = "";
-      statusCell.className = "";
+function deleteTask(id) {
+  if (!confirm('Delete this task?')) return;
+  tasks = tasks.filter(x => x.id !== id);
+  persist(); render();
+}
 
-      // Apply individual colors
-      priorityCell.classList.add(`priority-${priority}`);
-      statusCell.classList.add(`status-${status}`);
+function clearCompleted() {
+  if (!tasks.some(t => t.status === 'completed')) return;
+  if (!confirm('Remove all completed tasks?')) return;
+  tasks = tasks.filter(t => t.status !== 'completed');
+  persist(); render();
+}
 
-      // Update completion date
-      row.cells[5].innerText = status === "done" ? new Date().toLocaleDateString() : "-";
+function startEdit(id) { editingId = id; render(); }
+function cancelEdit() { editingId = null; render(); }
 
-      saveTasks();
-    }
+function saveEdit(id) {
+  const t = tasks.find(x => x.id === id);
+  const name = document.getElementById('eName').value.trim();
+  const date = document.getElementById('eDate').value;
+  if (!name || !date) return alert('Please enter a task name and a date.');
+  t.name = name;
+  t.priority = document.getElementById('ePriority').value;
+  t.date = date;
+  t.due = document.getElementById('eDue').value;
+  const r = record.find(x => x.id === id);
+  if (r) { r.name = t.name; r.priority = t.priority; }
+  editingId = null;
+  persist(); persistRecord(); render();
+}
 
-    function handleNextAction(e, row) {
-      const action = e.target.value;
-      if (action === "complete") {
-        row.cells[2].querySelector("select").value = "done";
-        updateColors(row);
-      } else if (action === "delete") {
-        deleteRow(row.cells[7].querySelector("button"));
-      } else if (action === "follow-up") {
-        alert("📌 Follow up on this task soon!");
-      }
-      e.target.value = "";
-      updateSmartTip();
-    }
+function exportCsv() {
+  if (!tasks.length) return alert('Add a task first, then export.');
+  // A leading apostrophe stops Excel from running text that starts with = + - @ as a formula
+  const cell = v => { v = String(v == null ? '' : v); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; };
+  const rows = [['Task', 'Priority', 'Status', 'Assigned', 'Due', 'Completed']]
+    .concat(tasks.map(t => [t.name, t.priority, STATUS[t.status], t.date, t.due || '', t.doneOn || '']));
+  const csv = '\ufeff' + rows.map(r => r.map(cell).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = 'valorx-tasks-' + today() + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(a.href);
+}
 
-    function deleteRow(btn) {
-      const row = btn.parentElement.parentElement;
-      taskTable.removeChild(row);
-      updateSmartTip();
-      saveTasks();
-    }
+function clearRemoved() {
+  const gone = record.filter(r => !tasks.some(t => t.id === r.id));
+  if (!gone.length) return;
+  if (!confirm('Remove ' + gone.length + ' deleted task(s) from the record?')) return;
+  record = record.filter(r => tasks.some(t => t.id === r.id));
+  persistRecord(); render();
+}
 
-    function updateSmartTip() {
-      const total = taskTable.rows.length;
-      const completed = [...taskTable.rows].filter(
-        (r) => r.cells[2].querySelector("select").value === "done"
-      ).length;
-      const pending = total - completed;
+function renderRecord() {
+  document.getElementById('recCount').textContent = record.length ? '(' + record.length + ')' : '';
+  const ul = document.getElementById('recordList');
+  if (!record.length) { ul.outerHTML = '<ul id="recordList"><li class="rec-empty" style="list-style:none;margin-left:-18px">Nothing here yet. Tasks you add will be listed.</li></ul>'; return; }
+  ul.innerHTML = record.slice().reverse().map(r => {
+    const t = tasks.find(x => x.id === r.id);
+    const cls = !t ? 'r-removed' : t.status === 'completed' ? 'r-completed' : t.status === 'in progress' ? 'r-progress' : 'r-notstarted';
+    const label = !t ? 'Removed' : STATUS[t.status];
+    return `<li class="${cls}"><span class="r-name">${esc(r.name)}</span><small>${label}, added ${fmt(r.addedOn)}</small></li>`;
+  }).join('');
+}
 
-      if (total === 0) {
-        smartTip.innerText = "No tasks yet. Add one to get started!";
-      } else if (pending === 0) {
-        smartTip.innerText = "🔥 All tasks completed! Great work!";
-      } else {
-        smartTip.innerText = `📋 ${pending} task(s) remaining — stay focused!`;
-      }
-    }
+function rowClass(t) {
+  if (t.status === 'completed') return 'st-completed';
+  if (t.status === 'in progress') return 'st-progress';
+  return 'pr-' + t.priority;
+}
+function statusClass(s) { return s === 'completed' ? 'v-completed' : s === 'in progress' ? 'v-progress' : 'v-notstarted'; }
 
-    function saveTasks() {
-      const tasks = [...taskTable.rows].map(row => ({
-        task: row.cells[0].innerText,
-        priority: row.cells[1].querySelector("select").value,
-        status: row.cells[2].querySelector("select").value,
-        assigned: row.cells[3].innerText,
-        due: row.cells[4].innerText,
-        completed: row.cells[5].innerText
-      }));
-      localStorage.setItem("raphtech_tasks", JSON.stringify(tasks));
-    }
+function render() {
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const f = document.getElementById('filter').value;
 
-    function loadTasks() {
-      const saved = JSON.parse(localStorage.getItem("raphtech_tasks") || "[]");
-      saved.forEach(t => addTask(t));
-    }
+  document.getElementById('cTotal').textContent = tasks.length;
+  document.getElementById('cUrgent').textContent = tasks.filter(t => t.priority === 'urgent' && t.status !== 'completed').length;
+  document.getElementById('cProgress').textContent = tasks.filter(t => t.status === 'in progress').length;
+  const done = tasks.filter(t => t.status === 'completed').length;
+  document.getElementById('cDone').textContent = done;
+  const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0;
+  document.getElementById('pctText').textContent = pct + '% complete';
+  document.getElementById('pctNote').textContent = done + ' of ' + tasks.length + ' tasks done';
+  document.getElementById('pctFill').style.width = pct + '%';
 
-    loadTasks();
-  </script>
+  const list = tasks
+    .filter(t => (f === 'all' || t.status === f) && t.name.toLowerCase().includes(q))
+    .sort((a, b) => ORDER[a.priority] - ORDER[b.priority] || a.id - b.id);
+
+  const groups = [
+    { status: 'in progress', title: 'In progress', cls: 'g-progress' },
+    { status: 'not started', title: 'Not started', cls: 'g-notstarted' },
+    { status: 'completed', title: 'Completed', cls: 'g-completed' }
+  ];
+
+  let html = '';
+  groups.forEach(g => {
+    const items = list.filter(t => t.status === g.status);
+    if (!items.length) return;
+    html += `<tr class="group ${g.cls}"><td colspan="7">${g.title}<span class="count">${items.length}</span></td></tr>`;
+    html += items.map(t => t.id === editingId ? editRow(t) : viewRow(t)).join('');
+  });
+
+  document.getElementById('empty').hidden = list.length > 0;
+  document.getElementById('taskTable').innerHTML = html;
+  renderRecord();
+}
+
+function viewRow(t) {
+  const done = t.status === 'completed';
+  return `<tr class="${rowClass(t)}">
+    <td data-label="Task"><span class="task-name">${done ? '<span class="check">✔</span>' : ''}${esc(t.name)}</span></td>
+    <td data-label="Priority"><span class="badge b-${t.priority}${done && t.priority === 'urgent' ? '" style="animation:none' : ''}">${PRIORITY[t.priority]}</span></td>
+    <td data-label="Status">
+      <select class="status ${statusClass(t.status)}" onchange="setStatus(${t.id}, this.value)" aria-label="Change status">${opts(STATUS, t.status)}</select>
+    </td>
+    <td data-label="Assigned">${fmt(t.date)}</td>
+    <td data-label="Due">${fmt(t.due)}${dueFlag(t)}</td>
+    <td data-label="Completed">${fmt(t.doneOn)}</td>
+    <td data-label="Actions">
+      <button class="btn edit" onclick="startEdit(${t.id})">Edit</button>
+      <button class="btn delete" onclick="deleteTask(${t.id})">Delete</button>
+    </td>
+  </tr>`;
+}
+
+function editRow(t) {
+  return `<tr class="${rowClass(t)}">
+    <td data-label="Task"><input type="text" id="eName" value="${esc(t.name)}" maxlength="120"></td>
+    <td data-label="Priority"><select id="ePriority">${opts(PRIORITY, t.priority)}</select></td>
+    <td data-label="Status">${STATUS[t.status]}</td>
+    <td data-label="Assigned"><input type="date" id="eDate" value="${esc(t.date)}"></td>
+    <td data-label="Due"><input type="date" id="eDue" value="${esc(t.due || '')}"></td>
+    <td data-label="Completed">${fmt(t.doneOn)}</td>
+    <td data-label="Actions">
+      <button class="btn save" onclick="saveEdit(${t.id})">Save</button>
+      <button class="btn cancel" onclick="cancelEdit()">Cancel</button>
+    </td>
+  </tr>`;
+}
+
+document.getElementById('dateAssigned').value = today();
+document.getElementById('taskName').addEventListener('keydown', e => { if (e.key === 'Enter') addTask(); });
+render();
+
+const THEME_KEY = 'raphtech_theme';
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  document.getElementById('themeBtn').textContent = t === 'dark' ? 'Light mode' : 'Dark mode';
+}
+function toggleTheme() {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  applyTheme(t);
+  try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+}
+(function () {
+  let saved = null;
+  try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
+  applyTheme(saved || (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+})();
+</script>
 </body>
 </html>
